@@ -1,0 +1,11 @@
+This directory contains source code to Lemon, a LALR parser generator.
+
+To compile the project, run:
+
+    ./configure			;#  Run the configure script
+    make			;#  Run the makefile.
+    make install		;#  (Optional) Install the build products
+
+Additional information:
+
+    http://en.wikipedia.org/wiki/Lemon_Parser
