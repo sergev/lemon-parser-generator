@@ -1,6 +1,4 @@
-bin_PROGRAMS = lemon
-lemon_SOURCES = lemon.c
-AM_CFLAGS = -Wall -g -O
+SUBDIRS = . src
 
 clean-local:
 	-rm -rf *~
