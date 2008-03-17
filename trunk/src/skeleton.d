@@ -101,8 +101,6 @@ private const int YY_ERROR_ACTION = YYNSTATE + YYNRULE;
  */
 %%
 
-private const int YY_SZ_ACTTAB = yy_action.length;
-
 /* The next table maps tokens into fallback tokens.  If a construct
  * like the following:
  *
@@ -276,7 +274,8 @@ class parser_t {
 		}
 		assert (i_lookahead != YYNOCODE);
 		i += i_lookahead;
-		if (i >= 0 && i < YY_SZ_ACTTAB && yy_lookahead[i] == i_lookahead) {
+		if (i >= 0 && i < yy_action.length &&
+		    yy_lookahead[i] == i_lookahead) {
 			return yy_action [i];
 		}
 		if (i_lookahead > 0) {
@@ -295,7 +294,7 @@ class parser_t {
 			if (YYWILDCARD >= 0) {
 				int j = i - i_lookahead + YYWILDCARD;
 
-				if (j >= 0 && j < YY_SZ_ACTTAB &&
+				if (j >= 0 && j < yy_action.length &&
 				    yy_lookahead[j] == YYWILDCARD) {
 					debug (lemon) { if (trace_file) {
 						fprintf (trace_file, "%sWILDCARD %s => %s\n",
@@ -327,7 +326,7 @@ class parser_t {
 		assert (i != YY_REDUCE_USE_DFLT);
 		assert (i_lookahead != YYNOCODE);
 		i += i_lookahead;
-		assert (i >= 0 && i < YY_SZ_ACTTAB);
+		assert (i >= 0 && i < yy_action.length);
 		assert (yy_lookahead[i] == i_lookahead);
 		return yy_action [i];
 	}
@@ -609,7 +608,8 @@ class parser_t {
 							parse_failed ();
 							major = YYNOCODE;
 						} else if (mx != YYERRORSYMBOL) {
-							YYMINORTYPE u2 = {0};
+							YYMINORTYPE u2;
+							u2.yy0 = 0;
 							shift (act, YYERRORSYMBOL, &u2);
 						}
 					}
