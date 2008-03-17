@@ -7,6 +7,4 @@ typedef union {
 # define YYSTYPE_IS_TRIVIAL 1
 #endif
 
-
-/* extern YYSTYPE yylval; */
-YYSTYPE yylval; 
+YYSTYPE yylval;

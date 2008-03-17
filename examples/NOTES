@@ -1,39 +1,25 @@
 These are notes from D. Richard Hipp; but, I couldn't
 get this exact sample to work.  Instead, see example4.y
 
-
 There's a bug in lemon such that it doesn't like the primary
 non-terminal to be recursive.  So do this:
 
-
  main ::= in.
 
-
 Then in addition to what you have it should work.
-
 
 Correction:  There *used* to be this bug in lemon.  I think
 it is now fixed.  The problem above is that there is no
 initial case for the in term.  You need this:
 
-
     in ::= .
     in ::= in stmt ENDLINE.
-
-
-
 
 http://netsurf.strcprstskrzkrk.co.uk/codedocs/parser_8y-source.html
 http://wwwivs.cs.uni-magdeburg.de/~puma/UsersManual/HTML/node9.html#SECTION00921000000000000000
 
-
-
-
-
-
-
-
-[chirico notes - the following are my notes going through the sqlite source code]
+[chirico notes - the following are my notes going through
+the sqlite source code]
 
 [sqliteInt.h]
 struct Parse {
@@ -69,7 +55,6 @@ struct Parse {
   u32 writeMask;       /* Start a write transaction on these databases */
 };
 
-
  grep -H 'sqlite3Parser' *
 parse.y:%name sqlite3Parser
 pragma.c:    extern void sqlite3ParserTrace(FILE*, char *);
@@ -90,22 +75,10 @@ struct Token {
   unsigned n    : 31; /* Number of characters in this token */
 };
 
-
-
 REFERENCES on Parsing theory:
 http://www.seanerikoconnor.freeservers.com/ComputerScience/Compiler/ParserGeneratorAndParser/QuickReviewOfLRandLALRParsingTheory.html
 
 http://www.csd.uwo.ca/~wozniak/cs447a-fall2001/notes/01_-_intro/
-
-
-
-
-
-
-
-
-
-
 
 Gpending a bunch of time writing some YACC grammars using
 Flex and Bison. Flex and Bison are GNU ports of Lex and Yacc
@@ -116,7 +89,6 @@ to interop seamlessly is not ;( Man, did I feel lots of pain. The
 purpose of this entry is to hopefully prevent other folks from
 feeling the same pain that I felt today.
 
-
 The generally accepted practice is to let Flex generate C code,
 and to trick Bison into generating C++ code.[1] This means,
 however, that you now are mixing C and C++ code within the same
@@ -125,30 +97,24 @@ from this unholy combination, you'll need to tell your C++ compiler
 to turn off name mangling for certain symbols. This, of course,
 requires that you understand how Flex and Bison talk to each other.
 
-
 Bison calls the Flex-generated yylex() function to obtain the next
 token from Flex. Since yylex() will be compiled in a "C" source
 file, you need to disable name mangling of this function. This is
 conveniently done using the extern "C" directive and declaring the
 yylex() function prototype in the header of your Bison file:
 
-
 extern "C" {
   int yylex( void );
 }
-
 
 In C++ code, you can only define a method once. The yyerror() method
 is called by Bison-generated code to report errors. Therefore, you
 must add a forward-reference to your yyerror() implementation that
 you'll write at the bottom of your Bison source code file by adding:
 
-
 int yyerror( const char * );
 
-
 to your Bison file's header.
-
 
 To complicate matters, I wasn't reading input from stdin and stdout;
 I was reading input from strings that are passed to my parser. This
@@ -158,9 +124,7 @@ mangling for these symbols as well. Here's all of the code that
 you'll need to add to your Bison file's header to turn off name
 mangling.
 
-
 typedef struct yy_buffer_state *YY_BUFFER_STATE;
-
 
 extern "C" {
   int             yylex( void ); YY_BUFFER_STATE yy_scan_string(
@@ -168,21 +132,17 @@ extern "C" {
   );
 }
 
-
 But wait, there's more pain! In my Bison file, I need to use unions,
 since I would pass both token values and text values back to my
 Bison grammar. Here's the union definition from my Bison file:
-
 
 %union {
   int    token; char  *string;
 }
 
-
 This union is manifested through a global variable called
 yylval. Once Bison is finished generating code, you'll wind up with
 a declaration that looks like:
-
 
 typedef union {
   int token; char *string;
@@ -190,12 +150,10 @@ typedef union {
 
 YYSTYPE yylval;
 
-
 However, yylval is defined by Bison, not Flex. And the
 Bison-generated file is a C++ file, whereas the Flex-generated
 code is a C file. This means that you need to disable name mangling
 of yylval.
-
 
 When Bison generates code, it does so by using a template file
 called bison.simple. Unfortunately, the version of bison.simple
@@ -203,12 +161,9 @@ that I got from Wilbur Streett's otherwise excellent Win32 port of
 Flex and Bison did not disable name mangling of yylval. Therefore,
 I needed to replace 117 of his file:
 
-
 YYSTYPE yylval;
 
-
 with some conditionally compiled code:
-
 
 #ifdef __cplusplus
   extern "C" YYSTYPE yylval;
@@ -216,13 +171,11 @@ with some conditionally compiled code:
   YYSTYPE yylval;
 #endif
 
-
 With these fixes in place, I'm happy to report that I can finally
 use Bison to generate C++ code, and Flex to generate C code. More
 importantly, figuring out how to get the generated C++ and C code
 to talk to each other greatly deepened my understanding of how Flex
 and Bison work together to generate your parser.
-
 
 [1] This is an excellent tutorial for Lex and Yacc. In particular,
 Section 5 is invaluable in telling you why you need to leave Lex

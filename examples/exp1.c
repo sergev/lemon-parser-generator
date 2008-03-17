@@ -3,7 +3,7 @@
 
 int main()
 {
-  void* pParser = ParseAlloc (malloc);
+  void *pParser = ParseAlloc (malloc);
 
   /* First input:
       15 / 5
@@ -16,7 +16,6 @@ int main()
   /*  Second input:
         50 + 125
                                */
-
   Parse (pParser, INTEGER, 50);
   Parse (pParser, PLUS, 0);
   Parse (pParser, INTEGER, 125);
@@ -25,15 +24,12 @@ int main()
   /*  Third input:
         50 * 125 + 125
                                */
-
-
   Parse (pParser, INTEGER, 50);
   Parse (pParser, TIMES, 0);
   Parse (pParser, INTEGER, 125);
   Parse (pParser, PLUS, 0);
   Parse (pParser, INTEGER, 125);
   Parse (pParser, 0, 0);
-
 
   ParseFree(pParser, free);
   return 0;

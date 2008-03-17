@@ -5,6 +5,8 @@
 ** and Makefile of another program.
 **
 ** The author of this program disclaims copyright.
+**
+** D language support Copyright (GPL) Serge Vakulenko <serge@vak.ru>.
 */
 #include <stdio.h>
 #include <stdarg.h>
