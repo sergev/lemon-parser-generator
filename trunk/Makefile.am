@@ -1,4 +1,4 @@
-SUBDIRS = . src
+SUBDIRS = . src examples
 
 clean-local:
 	-rm -rf *~
