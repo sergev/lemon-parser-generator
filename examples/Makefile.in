@@ -34,7 +34,7 @@ bin_PROGRAMS = exp1$(EXEEXT) exp2$(EXEEXT) exp3$(EXEEXT) exp4$(EXEEXT) \
 	exp5$(EXEEXT) exp6$(EXEEXT) dcalc$(EXEEXT)
 subdir = examples
 DIST_COMMON = README $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	ChangeLog lexer.c
+	lexer.c
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
