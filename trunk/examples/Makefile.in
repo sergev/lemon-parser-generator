@@ -31,7 +31,7 @@ NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
 bin_PROGRAMS = exp1$(EXEEXT) exp2$(EXEEXT) exp3$(EXEEXT) exp4$(EXEEXT) \
-	exp5$(EXEEXT) dcalc$(EXEEXT)
+	exp5$(EXEEXT) exp6$(EXEEXT) dcalc$(EXEEXT)
 subdir = examples
 DIST_COMMON = README $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	ChangeLog lexer.c
@@ -63,6 +63,9 @@ exp4_LDADD = $(LDADD)
 am_exp5_OBJECTS = exp5.$(OBJEXT) lexer.$(OBJEXT)
 exp5_OBJECTS = $(am_exp5_OBJECTS)
 exp5_LDADD = $(LDADD)
+exp6_SOURCES = exp6.c
+exp6_OBJECTS = exp6.$(OBJEXT)
+exp6_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I. -I$(top_builddir)@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -78,9 +81,9 @@ CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 LEXCOMPILE = $(LEX) $(LFLAGS) $(AM_LFLAGS)
 YLWRAP = $(top_srcdir)/ylwrap
 SOURCES = $(dcalc_SOURCES) $(exp1_SOURCES) $(exp2_SOURCES) \
-	$(exp3_SOURCES) $(exp4_SOURCES) $(exp5_SOURCES)
+	$(exp3_SOURCES) $(exp4_SOURCES) $(exp5_SOURCES) exp6.c
 DIST_SOURCES = $(dcalc_SOURCES) $(exp1_SOURCES) $(exp2_SOURCES) \
-	$(exp3_SOURCES) $(exp4_SOURCES) $(exp5_SOURCES)
+	$(exp3_SOURCES) $(exp4_SOURCES) $(exp5_SOURCES) exp6.c
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -270,6 +273,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/exp3.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/exp4.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/exp5.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/exp6.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lexer.Po@am__quote@
 
 .c.o:
@@ -384,7 +388,6 @@ installdirs:
 	for dir in "$(DESTDIR)$(bindir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
-install: install-am
 install-exec: install-exec-am
 install-data: install-data-am
 uninstall: uninstall-am
@@ -482,8 +485,10 @@ uninstall-am: uninstall-binPROGRAMS
 	tags uninstall uninstall-am uninstall-binPROGRAMS
 
 
+install:
+
 clean-local:
-	-rm -rf *~ *.out example[1-5].[ch]
+	-rm -rf *~ *.out example[0-9].[cdh] lexer.c
 
 distclean-local:
 	-rm -rf autom4te.cache
@@ -503,11 +508,17 @@ example4.c example4.h: example4.y
 example5.c example5.h: example5.y
 	lemon example5.y
 
+example6.d: example6.y
+	lemon -ld example6.y
+
 exp1.o: example1.c
 exp2.o: example2.c
 exp3.o: example3.c
 exp4.o: example4.c
 exp5.o: example5.c
+
+exp6:	example6.d
+	gdc $(CFLAGS) -funittest -fdebug=parser $< -o $@
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

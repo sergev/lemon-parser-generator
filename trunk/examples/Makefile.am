@@ -1,4 +1,4 @@
-bin_PROGRAMS = exp1 exp2 exp3 exp4 exp5 dcalc
+bin_PROGRAMS = exp1 exp2 exp3 exp4 exp5 exp6 dcalc
 exp1_SOURCES = exp1.c
 exp2_SOURCES = exp2.c
 exp3_SOURCES = exp3.c
@@ -7,8 +7,10 @@ exp5_SOURCES = exp5.c lexer.l
 dcalc_SOURCES = desktop_calc.cc
 AM_CFLAGS = -Wall -g -O
 
+install:
+
 clean-local:
-	-rm -rf *~ *.out example[1-5].[ch]
+	-rm -rf *~ *.out example[0-9].[cdh] lexer.c
 
 distclean-local:
 	-rm -rf autom4te.cache
@@ -28,8 +30,14 @@ example4.c example4.h: example4.y
 example5.c example5.h: example5.y
 	lemon example5.y
 
+example6.d: example6.y
+	lemon -ld example6.y
+
 exp1.o: example1.c
 exp2.o: example2.c
 exp3.o: example3.c
 exp4.o: example4.c
 exp5.o: example5.c
+
+exp6:	example6.d
+	gdc $(CFLAGS) -funittest -fdebug=parser $< -o $@

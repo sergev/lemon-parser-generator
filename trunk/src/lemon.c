@@ -1367,6 +1367,11 @@ void memory_error(){
 static int nDefine = 0;      /* Number of -D options on the command line */
 static char **azDefine = 0;  /* Name of the -D macros */
 
+#define LANG_C		0
+#define LANG_CPP	1
+#define LANG_D		2
+static int language = LANG_C; /* Output language */
+
 /* This routine is called with the argument to each -D command-line option.
 ** Add the macro defined to the azDefine array.
 */
@@ -1389,6 +1394,21 @@ static void handle_D_option(char *z){
   *z = 0;
 }
 
+/* This routine is called with the argument to each -l command-line option.
+** Set an output language (c, c++, d).
+*/
+static void handle_l_option(char *z){
+  if (strcmp (z, "c") == 0) {
+    language = LANG_C;
+
+  } else if (strcmp (z, "c++") == 0) {
+    language = LANG_CPP;
+
+  } else if (strcmp (z, "d") == 0) {
+    language = LANG_D;
+  }
+}
+
 
 /* The main program.  Parse the command line and do it... */
 int main(argc,argv)
@@ -1407,6 +1427,7 @@ char **argv;
     {OPT_FLAG, "c", (char*)&compress, "Don't compress the action table."},
     {OPT_FSTR, "D", (char*)handle_D_option, "Define an %ifdef macro."},
     {OPT_FLAG, "g", (char*)&rpflag, "Print grammar without actions."},
+    {OPT_FSTR, "l", (char*)handle_l_option, "Set an output language (c, c++, d)."},
     {OPT_FLAG, "m", (char*)&mhflag, "Output a makeheaders compatible file"},
     {OPT_FLAG, "q", (char*)&quiet, "(Quiet) Don't print the report file."},
     {OPT_FLAG, "s", (char*)&statistics,
@@ -1504,7 +1525,8 @@ char **argv;
     /* Produce a header file for use by the scanner.  (This step is
     ** omitted if the "-m" option is used because makeheaders will
     ** generate the file for us.) */
-    if( !mhflag ) ReportHeader(&lem);
+    if (! mhflag && language != LANG_D)
+      ReportHeader(&lem);
   }
   if( statistics ){
     printf("Parser statistics: %d terminals, %d nonterminals, %d rules\n",
@@ -3023,7 +3045,10 @@ int *lineno;
 PRIVATE FILE *tplt_open(lemp)
 struct lemon *lemp;
 {
-  static char templatename[] = "/usr/local/share/lemon/skeleton.c";
+  static char templatename_c[] = "/usr/local/share/lemon/skeleton.c";
+  static char templatename_cpp[] = "/usr/local/share/lemon/skeleton.cc";
+  static char templatename_d[] = "/usr/local/share/lemon/skeleton.d";
+  char *templatename;
   char buf[1000];
   FILE *in;
   char *tpltname;
@@ -3034,6 +3059,13 @@ struct lemon *lemp;
     sprintf(buf,"%.*s.lt",(int)(cp-lemp->filename),lemp->filename);
   }else{
     sprintf(buf,"%s.lt",lemp->filename);
+  }
+  if (language == LANG_D) {
+    templatename = templatename_d;
+  } else if (language == LANG_CPP) {
+    templatename = templatename_cpp;
+  } else {
+    templatename = templatename_c;
   }
   if( access(buf,004)==0 ){
     tpltname = buf;
@@ -3419,25 +3451,47 @@ int mhflag;                 /* True if generating makeheaders output */
   }
 
   /* Print out the definition of YYTOKENTYPE and YYMINORTYPE */
-  name = lemp->name ? lemp->name : "Parse";
   lineno = *plineno;
-  if( mhflag ){ fprintf(out,"#if INTERFACE\n"); lineno++; }
-  fprintf(out,"#define %sTOKENTYPE %s\n",name,
-    lemp->tokentype?lemp->tokentype:"void*");  lineno++;
-  if( mhflag ){ fprintf(out,"#endif\n"); lineno++; }
-  fprintf(out,"typedef union {\n"); lineno++;
-  fprintf(out,"  %sTOKENTYPE yy0;\n",name); lineno++;
-  for(i=0; i<arraysize; i++){
-    if( types[i]==0 ) continue;
-    fprintf(out,"  %s yy%d;\n",types[i],i+1); lineno++;
-    free(types[i]);
+  if (language == LANG_D) {
+    /* D language. */
+    fprintf(out,"alias %s token_t;\n", lemp->tokentype ?
+	lemp->tokentype : "void*"); lineno++;
+
+    fprintf(out,"private union YYMINORTYPE {\n"); lineno++;
+    fprintf(out,"  token_t yy0;\n"); lineno++;
+    for(i=0; i<arraysize; i++){
+      if( types[i]==0 ) continue;
+      fprintf(out,"  %s yy%d;\n",types[i],i+1); lineno++;
+      free(types[i]);
+    }
+    if( lemp->errsym->useCnt ){
+      fprintf(out,"  int yy%d;\n",lemp->errsym->dtnum); lineno++;
+    }
+    free(stddt);
+    free(types);
+    fprintf(out,"}\n"); lineno++;
+
+  } else {
+    /* C and C++ languages. */
+    name = lemp->name ? lemp->name : "Parse";
+    if( mhflag ){ fprintf(out,"#if INTERFACE\n"); lineno++; }
+    fprintf(out,"#define %sTOKENTYPE %s\n",name,
+      lemp->tokentype?lemp->tokentype:"void*");  lineno++;
+    if( mhflag ){ fprintf(out,"#endif\n"); lineno++; }
+    fprintf(out,"typedef union {\n"); lineno++;
+    fprintf(out,"  %sTOKENTYPE yy0;\n",name); lineno++;
+    for(i=0; i<arraysize; i++){
+      if( types[i]==0 ) continue;
+      fprintf(out,"  %s yy%d;\n",types[i],i+1); lineno++;
+      free(types[i]);
+    }
+    if( lemp->errsym->useCnt ){
+      fprintf(out,"  int yy%d;\n",lemp->errsym->dtnum); lineno++;
+    }
+    free(stddt);
+    free(types);
+    fprintf(out,"} YYMINORTYPE;\n"); lineno++;
   }
-  if( lemp->errsym->useCnt ){
-    fprintf(out,"  int yy%d;\n",lemp->errsym->dtnum); lineno++;
-  }
-  free(stddt);
-  free(types);
-  fprintf(out,"} YYMINORTYPE;\n"); lineno++;
   *plineno = lineno;
 }
 
@@ -3448,14 +3502,14 @@ int mhflag;                 /* True if generating makeheaders output */
 static const char *minimum_size_type(int lwr, int upr){
   if( lwr>=0 ){
     if( upr<=255 ){
-      return "unsigned char";
+      return language==LANG_D ? "ubyte" : "unsigned char";
     }else if( upr<65535 ){
-      return "unsigned short int";
+      return language==LANG_D ? "ushort" : "unsigned short int";
     }else{
-      return "unsigned int";
+      return language==LANG_D ? "uint" : "unsigned int";
     }
   }else if( lwr>=-127 && upr<=127 ){
-    return "signed char";
+    return language==LANG_D ? "byte" : "signed char";
   }else if( lwr>=-32767 && upr<32767 ){
     return "short";
   }else{
@@ -3523,7 +3577,9 @@ int mhflag;     /* Output in makeheaders format if true */
 
   in = tplt_open(lemp);
   if( in==0 ) return;
-  out = file_open(lemp,".c","wb");
+  out = file_open(lemp, language==LANG_D ? ".d" :
+			language==LANG_CPP ? ".cc" :
+			".c", "wb");
   if( out==0 ){
     fclose(in);
     return;
@@ -3541,13 +3597,23 @@ int mhflag;     /* Output in makeheaders format if true */
   tplt_xfer(lemp->name,in,out,&lineno);
 
   /* Generate #defines for all tokens */
-  if( mhflag ){
+  if (language == LANG_D) {
+    char *prefix = lemp->tokenprefix ? lemp->tokenprefix : "";
+    for(i=1; i<lemp->nterminal; i++){
+      fprintf (out, "const int %s%-30s = %2d;\n",
+        prefix, lemp->symbols[i]->name,i);
+      lineno++;
+    }
+  } else if (mhflag) {
     char *prefix;
     fprintf(out,"#if INTERFACE\n"); lineno++;
     if( lemp->tokenprefix ) prefix = lemp->tokenprefix;
     else                    prefix = "";
     for(i=1; i<lemp->nterminal; i++){
-      fprintf(out,"#define %s%-30s %2d\n",prefix,lemp->symbols[i]->name,i);
+      if (language == LANG_D)
+        fprintf(out,"const int %s%-30s = %2d;\n",prefix,lemp->symbols[i]->name,i);
+      else
+        fprintf(out,"#define %s%-30s %2d\n",prefix,lemp->symbols[i]->name,i);
       lineno++;
     }
     fprintf(out,"#endif\n"); lineno++;
@@ -3555,55 +3621,74 @@ int mhflag;     /* Output in makeheaders format if true */
   tplt_xfer(lemp->name,in,out,&lineno);
 
   /* Generate the defines */
-  fprintf(out,"#define YYCODETYPE %s\n",
-    minimum_size_type(0, lemp->nsymbol+5)); lineno++;
-  fprintf(out,"#define YYNOCODE %d\n",lemp->nsymbol+1);  lineno++;
-  fprintf(out,"#define YYACTIONTYPE %s\n",
-    minimum_size_type(0, lemp->nstate+lemp->nrule+5));  lineno++;
-  if( lemp->wildcard ){
-    fprintf(out,"#define YYWILDCARD %d\n",
-       lemp->wildcard->index); lineno++;
-  }
-  print_stack_union(out,lemp,&lineno,mhflag);
-  fprintf(out, "#ifndef YYSTACKDEPTH\n"); lineno++;
-  if( lemp->stacksize ){
-    fprintf(out,"#define YYSTACKDEPTH %s\n",lemp->stacksize);  lineno++;
-  }else{
-    fprintf(out,"#define YYSTACKDEPTH 100\n");  lineno++;
-  }
-  fprintf(out, "#endif\n"); lineno++;
-  if( mhflag ){
-    fprintf(out,"#if INTERFACE\n"); lineno++;
-  }
-  name = lemp->name ? lemp->name : "Parse";
-  if( lemp->arg && lemp->arg[0] ){
-    int i;
-    i = strlen(lemp->arg);
-    while( i>=1 && isspace(lemp->arg[i-1]) ) i--;
-    while( i>=1 && (isalnum(lemp->arg[i-1]) || lemp->arg[i-1]=='_') ) i--;
-    fprintf(out,"#define %sARG_SDECL %s;\n",name,lemp->arg);  lineno++;
-    fprintf(out,"#define %sARG_PDECL ,%s\n",name,lemp->arg);  lineno++;
-    fprintf(out,"#define %sARG_FETCH %s = yypParser->%s\n",
-                 name,lemp->arg,&lemp->arg[i]);  lineno++;
-    fprintf(out,"#define %sARG_STORE yypParser->%s = %s\n",
-                 name,&lemp->arg[i],&lemp->arg[i]);  lineno++;
-  }else{
-    fprintf(out,"#define %sARG_SDECL\n",name);  lineno++;
-    fprintf(out,"#define %sARG_PDECL\n",name);  lineno++;
-    fprintf(out,"#define %sARG_FETCH\n",name); lineno++;
-    fprintf(out,"#define %sARG_STORE\n",name); lineno++;
-  }
-  if( mhflag ){
-    fprintf(out,"#endif\n"); lineno++;
-  }
-  fprintf(out,"#define YYNSTATE %d\n",lemp->nstate);  lineno++;
-  fprintf(out,"#define YYNRULE %d\n",lemp->nrule);  lineno++;
-  if( lemp->errsym->useCnt ){
-    fprintf(out,"#define YYERRORSYMBOL %d\n",lemp->errsym->index);  lineno++;
-    fprintf(out,"#define YYERRSYMDT yy%d\n",lemp->errsym->dtnum);  lineno++;
-  }
-  if( lemp->has_fallback ){
-    fprintf(out,"#define YYFALLBACK 1\n");  lineno++;
+  if (language == LANG_D) {
+    /* D language. */
+    fprintf(out,"alias %s YYCODETYPE;\n",
+      minimum_size_type(0, lemp->nsymbol+5)); lineno++;
+    fprintf(out,"const YYCODETYPE YYNOCODE = %d;\n",lemp->nsymbol+1);  lineno++;
+    fprintf(out,"alias %s YYACTIONTYPE;\n",
+      minimum_size_type(0, lemp->nstate+lemp->nrule+5));  lineno++;
+    fprintf(out,"const int YYWILDCARD = %d;\n",
+      lemp->wildcard ? lemp->wildcard->index : -1);  lineno++;
+    print_stack_union(out,lemp,&lineno,mhflag);
+    name = lemp->name ? lemp->name : "Parse";
+    fprintf(out,"const int YYNSTATE = %d;\n",lemp->nstate);  lineno++;
+    fprintf(out,"const int YYNRULE = %d;\n",lemp->nrule);  lineno++;
+    fprintf(out,"const int YYERRORSYMBOL = %d;\n", lemp->errsym->useCnt ?
+      lemp->errsym->index : -1);  lineno++;
+
+  } else {
+    /* C and C++ languages. */
+    fprintf(out,"#define YYCODETYPE %s\n",
+      minimum_size_type(0, lemp->nsymbol+5)); lineno++;
+    fprintf(out,"#define YYNOCODE %d\n",lemp->nsymbol+1);  lineno++;
+    fprintf(out,"#define YYACTIONTYPE %s\n",
+      minimum_size_type(0, lemp->nstate+lemp->nrule+5));  lineno++;
+    if( lemp->wildcard ){
+      fprintf(out,"#define YYWILDCARD %d\n",
+	 lemp->wildcard->index); lineno++;
+    }
+    print_stack_union(out,lemp,&lineno,mhflag);
+    fprintf(out, "#ifndef YYSTACKDEPTH\n"); lineno++;
+    if( lemp->stacksize ){
+      fprintf(out,"#define YYSTACKDEPTH %s\n",lemp->stacksize);  lineno++;
+    }else{
+      fprintf(out,"#define YYSTACKDEPTH 100\n");  lineno++;
+    }
+    fprintf(out, "#endif\n"); lineno++;
+    if( mhflag ){
+      fprintf(out,"#if INTERFACE\n"); lineno++;
+    }
+    name = lemp->name ? lemp->name : "Parse";
+    if( lemp->arg && lemp->arg[0] ){
+      int i;
+      i = strlen(lemp->arg);
+      while( i>=1 && isspace(lemp->arg[i-1]) ) i--;
+      while( i>=1 && (isalnum(lemp->arg[i-1]) || lemp->arg[i-1]=='_') ) i--;
+      fprintf(out,"#define %sARG_SDECL %s;\n",name,lemp->arg);  lineno++;
+      fprintf(out,"#define %sARG_PDECL ,%s\n",name,lemp->arg);  lineno++;
+      fprintf(out,"#define %sARG_FETCH %s = yypParser->%s\n",
+		   name,lemp->arg,&lemp->arg[i]);  lineno++;
+      fprintf(out,"#define %sARG_STORE yypParser->%s = %s\n",
+		   name,&lemp->arg[i],&lemp->arg[i]);  lineno++;
+    }else{
+      fprintf(out,"#define %sARG_SDECL\n",name);  lineno++;
+      fprintf(out,"#define %sARG_PDECL\n",name);  lineno++;
+      fprintf(out,"#define %sARG_FETCH\n",name); lineno++;
+      fprintf(out,"#define %sARG_STORE\n",name); lineno++;
+    }
+    if( mhflag ){
+      fprintf(out,"#endif\n"); lineno++;
+    }
+    fprintf(out,"#define YYNSTATE %d\n",lemp->nstate);  lineno++;
+    fprintf(out,"#define YYNRULE %d\n",lemp->nrule);  lineno++;
+    if( lemp->errsym->useCnt ){
+      fprintf(out,"#define YYERRORSYMBOL %d\n",lemp->errsym->index);  lineno++;
+      fprintf(out,"#define YYERRSYMDT yy%d\n",lemp->errsym->dtnum);  lineno++;
+    }
+    if( lemp->has_fallback ){
+      fprintf(out,"#define YYFALLBACK 1\n");  lineno++;
+    }
   }
   tplt_xfer(lemp->name,in,out,&lineno);
 
@@ -3673,7 +3758,11 @@ int mhflag;     /* Output in makeheaders format if true */
   free(ax);
 
   /* Output the yy_action table */
-  fprintf(out,"static const YYACTIONTYPE yy_action[] = {\n"); lineno++;
+  if (language == LANG_D)
+    fprintf(out,"private static const YYACTIONTYPE yy_action[] = [\n");
+  else
+    fprintf(out,"static const YYACTIONTYPE yy_action[] = {\n");
+  lineno++;
   n = acttab_size(pActtab);
   for(i=j=0; i<n; i++){
     int action = acttab_yyaction(pActtab, i);
@@ -3687,10 +3776,18 @@ int mhflag;     /* Output in makeheaders format if true */
       j++;
     }
   }
-  fprintf(out, "};\n"); lineno++;
+  if (language == LANG_D)
+    fprintf(out, "];\n");
+  else
+    fprintf(out, "};\n");
+  lineno++;
 
   /* Output the yy_lookahead table */
-  fprintf(out,"static const YYCODETYPE yy_lookahead[] = {\n"); lineno++;
+  if (language == LANG_D)
+    fprintf(out,"private static const YYCODETYPE yy_lookahead[] = [\n");
+  else
+    fprintf(out,"static const YYCODETYPE yy_lookahead[] = {\n");
+  lineno++;
   for(i=j=0; i<n; i++){
     int la = acttab_yylookahead(pActtab, i);
     if( la<0 ) la = lemp->nsymbol;
@@ -3703,15 +3800,32 @@ int mhflag;     /* Output in makeheaders format if true */
       j++;
     }
   }
-  fprintf(out, "};\n"); lineno++;
+  if (language == LANG_D)
+    fprintf(out, "];\n");
+  else
+    fprintf(out, "};\n");
+  lineno++;
 
   /* Output the yy_shift_ofst[] table */
-  fprintf(out, "#define YY_SHIFT_USE_DFLT (%d)\n", mnTknOfst-1); lineno++;
+  if (language == LANG_D)
+    fprintf(out, "const int YY_SHIFT_USE_DFLT = %d;\n", mnTknOfst-1);
+  else
+    fprintf(out, "#define YY_SHIFT_USE_DFLT (%d)\n", mnTknOfst-1);
+  lineno++;
   n = lemp->nstate;
   while( n>0 && lemp->sorted[n-1]->iTknOfst==NO_OFFSET ) n--;
-  fprintf(out, "#define YY_SHIFT_MAX %d\n", n-1); lineno++;
-  fprintf(out, "static const %s yy_shift_ofst[] = {\n",
-          minimum_size_type(mnTknOfst-1, mxTknOfst)); lineno++;
+  if (language == LANG_D)
+    fprintf(out, "const int YY_SHIFT_MAX = %d;\n", n-1);
+  else
+    fprintf(out, "#define YY_SHIFT_MAX %d\n", n-1);
+  lineno++;
+  if (language == LANG_D)
+    fprintf(out, "private static const %s yy_shift_ofst[] = [\n",
+          minimum_size_type(mnTknOfst-1, mxTknOfst));
+  else
+    fprintf(out, "static const %s yy_shift_ofst[] = {\n",
+          minimum_size_type(mnTknOfst-1, mxTknOfst));
+  lineno++;
   for(i=j=0; i<n; i++){
     int ofst;
     stp = lemp->sorted[i];
@@ -3726,15 +3840,32 @@ int mhflag;     /* Output in makeheaders format if true */
       j++;
     }
   }
-  fprintf(out, "};\n"); lineno++;
+  if (language == LANG_D)
+    fprintf(out, "];\n");
+  else
+    fprintf(out, "};\n");
+  lineno++;
 
   /* Output the yy_reduce_ofst[] table */
-  fprintf(out, "#define YY_REDUCE_USE_DFLT (%d)\n", mnNtOfst-1); lineno++;
+  if (language == LANG_D)
+    fprintf(out, "const int YY_REDUCE_USE_DFLT = %d;\n", mnNtOfst-1);
+  else
+    fprintf(out, "#define YY_REDUCE_USE_DFLT (%d)\n", mnNtOfst-1);
+  lineno++;
   n = lemp->nstate;
   while( n>0 && lemp->sorted[n-1]->iNtOfst==NO_OFFSET ) n--;
-  fprintf(out, "#define YY_REDUCE_MAX %d\n", n-1); lineno++;
-  fprintf(out, "static const %s yy_reduce_ofst[] = {\n",
-          minimum_size_type(mnNtOfst-1, mxNtOfst)); lineno++;
+  if (language == LANG_D)
+    fprintf(out, "const int YY_REDUCE_MAX = %d;\n", n-1);
+  else
+    fprintf(out, "#define YY_REDUCE_MAX %d\n", n-1);
+  lineno++;
+  if (language == LANG_D)
+    fprintf(out, "private static const %s yy_reduce_ofst[] = [\n",
+          minimum_size_type(mnNtOfst-1, mxNtOfst));
+  else
+    fprintf(out, "static const %s yy_reduce_ofst[] = {\n",
+          minimum_size_type(mnNtOfst-1, mxNtOfst));
+  lineno++;
   for(i=j=0; i<n; i++){
     int ofst;
     stp = lemp->sorted[i];
@@ -3749,10 +3880,18 @@ int mhflag;     /* Output in makeheaders format if true */
       j++;
     }
   }
-  fprintf(out, "};\n"); lineno++;
+  if (language == LANG_D)
+    fprintf(out, "];\n");
+  else
+    fprintf(out, "};\n");
+  lineno++;
 
   /* Output the default action table */
-  fprintf(out, "static const YYACTIONTYPE yy_default[] = {\n"); lineno++;
+  if (language == LANG_D)
+    fprintf(out, "private static const YYACTIONTYPE yy_default[] = [\n");
+  else
+    fprintf(out, "static const YYACTIONTYPE yy_default[] = {\n");
+  lineno++;
   n = lemp->nstate;
   for(i=j=0; i<n; i++){
     stp = lemp->sorted[i];
@@ -3765,7 +3904,11 @@ int mhflag;     /* Output in makeheaders format if true */
       j++;
     }
   }
-  fprintf(out, "};\n"); lineno++;
+  if (language == LANG_D)
+    fprintf(out, "];\n");
+  else
+    fprintf(out, "};\n");
+  lineno++;
   tplt_xfer(lemp->name,in,out,&lineno);
 
   /* Generate the table of fallback tokens.
