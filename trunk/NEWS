@@ -1,2 +1,8 @@
+2008-03-17
+	Implemented support for D language.
+
+2008-03-16
+	Added C examples from http://freshmeat.net/articles/view/1270/
+
 2008-03-15
 	Imported lemon sources from sqlite-3.5.6.

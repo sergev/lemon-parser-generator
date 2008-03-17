@@ -1,4 +1,40 @@
 ------------------------------------------------------------------------
+r6 | serge.vakulenko | 2008-03-17 22:28:45 +0300 (Пнд, 17 Мар 2008) | 4 lines
+
+Implemented D language mode. Added option "lemon -ld".
+Created a D skeleton and example.
+
+
+------------------------------------------------------------------------
+r5 | serge.vakulenko | 2008-03-17 14:30:50 +0300 (Пнд, 17 Мар 2008) | 7 lines
+
+Added examples from "http://prdownloads.sourceforge.net/souptonuts/lemon_examples.tar.gz?download".
+Sources restyled, bugs fixed.
+
+File lempar.c renamed to skeleton.c.
+Skeleton installed to /usr/local/share/lemon/.
+
+
+------------------------------------------------------------------------
+r4 | serge.vakulenko | 2008-03-17 13:51:46 +0300 (Пнд, 17 Мар 2008) | 3 lines
+
+Source code: trailing spaces removed.
+
+
+------------------------------------------------------------------------
+r3 | serge.vakulenko | 2008-03-16 21:30:13 +0300 (Вск, 16 Мар 2008) | 3 lines
+
+Sources moved to src/ subdirectory.
+
+
+------------------------------------------------------------------------
+r2 | serge.vakulenko | 2008-03-15 17:22:18 +0300 (Сбт, 15 Мар 2008) | 4 lines
+
+Imported lemon sources from sqlite-3.5.6.
+Added all common autoconf/automake stuff.
+
+
+------------------------------------------------------------------------
 r1 | (no author) | 2008-03-15 17:13:53 +0300 (Сбт, 15 Мар 2008) | 1 line
 
 Initial directory structure.

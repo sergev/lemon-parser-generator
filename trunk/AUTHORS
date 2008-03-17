@@ -1,2 +1,8 @@
-Lemon was written by Dr. Richard Hipp and resides in the public domain.
-It is maintained as part of the SQLite project.
+Dr. Richard Hipp
+	Author of the Lemon program.
+
+Mike Chirico
+	C examples.
+
+Serge Vakulenko
+	Autoconf/automake stuff. Support for D language.

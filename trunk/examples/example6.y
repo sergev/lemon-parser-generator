@@ -16,14 +16,12 @@ program ::= expr(A).			{ writefln ("Result=%d", A); }
 expr(A) ::= expr(B) MINUS  expr(C).	{ A = B - C; }
 expr(A) ::= expr(B) PLUS   expr(C).	{ A = B + C; }
 expr(A) ::= expr(B) TIMES  expr(C).	{ A = B * C; }
-expr(A) ::= expr(B) DIVIDE expr(C).	{
-					if (C != 0) {
-						A = B / C;
-					} else {
-						writefln ("divide by zero");
+expr(A) ::= expr(B) DIVIDE expr(C).	{ if (C != 0) {
+					    A = B / C;
+					  } else {
+					    writefln ("divide by zero");
+					  }
 					}
-					}
-
 expr(A) ::= INTEGER(B).			{ A = B; }
 
 %include {

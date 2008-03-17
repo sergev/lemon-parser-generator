@@ -1,24 +1,16 @@
 /*
 Reference Chapter 6:
 "The C++ Programming Language", Special Edition.
-Bjarne Stroustrup,Addison-Wesley Pub Co; 3 edition (February 15, 2000) 
-ISBN: 0201700735 
-
-
-
-
+Bjarne Stroustrup,Addison-Wesley Pub Co; 3 edition (February 15, 2000)
+ISBN: 0201700735
 */
-
-
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <map>
 #include <cctype>
+
 using namespace std;
-
-
-
 
 enum Token_value {
   NAME, NUMBER, END, INC, DEC,
@@ -31,19 +23,13 @@ Token_value curr_tok = PRINT;
 double number_value;
 string string_value;
 
-
-
-
-double expr(bool );
-double term(bool );
+double expr(bool);
+double term(bool);
 double error(const string&);
-double prim(bool );
+double prim(bool);
 Token_value get_token();
 
-
-
 map<string, double> table;
-
 
 double expr(bool get)
 {
@@ -98,7 +84,7 @@ double prim(bool get)
 
       double& v = table[string_value];
       get_token();
-      if (curr_tok  == ASSIGN) 
+      if (curr_tok  == ASSIGN)
         v = expr(true);
       if (curr_tok == INC)  //r++;
 	v = v+1;
@@ -127,11 +113,10 @@ double prim(bool get)
 Token_value get_token()
 {
   char ch;
-  
+
   do {
     if(!cin.get(ch)) return curr_tok = END;
   } while(ch!='\n' && isspace(ch));
-
 
   switch(ch) {
   case ';':
@@ -195,7 +180,6 @@ istream* input;
 
 int main(int argc, char* argv[])
 {
-
   switch(argc) {
   case 1:
     input = &cin;
@@ -208,9 +192,6 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-
-
- 
   table["pi"] = 3.1415926535897932385;
   table["e"] = 2.718281818284590452354;
 
@@ -221,13 +202,7 @@ int main(int argc, char* argv[])
     cout << expr(false) << '\n';
   }
 
-
-  if(input != &cin) delete input;
+  if(input != &cin)
+    delete input;
   return no_of_errors;
-
-
 }
-
-
-
-
