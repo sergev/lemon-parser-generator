@@ -30,9 +30,11 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-bin_PROGRAMS = lemon$(EXEEXT)
-subdir = src
-DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
+bin_PROGRAMS = exp1$(EXEEXT) exp2$(EXEEXT) exp3$(EXEEXT) exp4$(EXEEXT) \
+	exp5$(EXEEXT) dcalc$(EXEEXT)
+subdir = examples
+DIST_COMMON = README $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
+	ChangeLog lexer.c
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -43,9 +45,24 @@ CONFIG_CLEAN_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
-am_lemon_OBJECTS = lemon.$(OBJEXT)
-lemon_OBJECTS = $(am_lemon_OBJECTS)
-lemon_LDADD = $(LDADD)
+am_dcalc_OBJECTS = desktop_calc.$(OBJEXT)
+dcalc_OBJECTS = $(am_dcalc_OBJECTS)
+dcalc_LDADD = $(LDADD)
+am_exp1_OBJECTS = exp1.$(OBJEXT)
+exp1_OBJECTS = $(am_exp1_OBJECTS)
+exp1_LDADD = $(LDADD)
+am_exp2_OBJECTS = exp2.$(OBJEXT)
+exp2_OBJECTS = $(am_exp2_OBJECTS)
+exp2_LDADD = $(LDADD)
+am_exp3_OBJECTS = exp3.$(OBJEXT)
+exp3_OBJECTS = $(am_exp3_OBJECTS)
+exp3_LDADD = $(LDADD)
+am_exp4_OBJECTS = exp4.$(OBJEXT)
+exp4_OBJECTS = $(am_exp4_OBJECTS)
+exp4_LDADD = $(LDADD)
+am_exp5_OBJECTS = exp5.$(OBJEXT) lexer.$(OBJEXT)
+exp5_OBJECTS = $(am_exp5_OBJECTS)
+exp5_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I. -I$(top_builddir)@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -53,8 +70,17 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(lemon_SOURCES)
-DIST_SOURCES = $(lemon_SOURCES)
+CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
+CXXLD = $(CXX)
+CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
+	-o $@
+LEXCOMPILE = $(LEX) $(LFLAGS) $(AM_LFLAGS)
+YLWRAP = $(top_srcdir)/ylwrap
+SOURCES = $(dcalc_SOURCES) $(exp1_SOURCES) $(exp2_SOURCES) \
+	$(exp3_SOURCES) $(exp4_SOURCES) $(exp5_SOURCES)
+DIST_SOURCES = $(dcalc_SOURCES) $(exp1_SOURCES) $(exp2_SOURCES) \
+	$(exp3_SOURCES) $(exp4_SOURCES) $(exp5_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -150,12 +176,17 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-lemon_SOURCES = lemon.c
-AM_CFLAGS = -Wall -g -O -fno-strict-aliasing
+exp1_SOURCES = exp1.c
+exp2_SOURCES = exp2.c
+exp3_SOURCES = exp3.c
+exp4_SOURCES = exp4.c
+exp5_SOURCES = exp5.c lexer.l
+dcalc_SOURCES = desktop_calc.cc
+AM_CFLAGS = -Wall -g -O
 all: all-am
 
 .SUFFIXES:
-.SUFFIXES: .c .o .obj
+.SUFFIXES: .c .cc .l .o .obj
 $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -165,9 +196,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  src/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  examples/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu  src/Makefile
+	  $(AUTOMAKE) --gnu  examples/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -208,9 +239,24 @@ uninstall-binPROGRAMS:
 
 clean-binPROGRAMS:
 	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
-lemon$(EXEEXT): $(lemon_OBJECTS) $(lemon_DEPENDENCIES) 
-	@rm -f lemon$(EXEEXT)
-	$(LINK) $(lemon_OBJECTS) $(lemon_LDADD) $(LIBS)
+dcalc$(EXEEXT): $(dcalc_OBJECTS) $(dcalc_DEPENDENCIES) 
+	@rm -f dcalc$(EXEEXT)
+	$(CXXLINK) $(dcalc_OBJECTS) $(dcalc_LDADD) $(LIBS)
+exp1$(EXEEXT): $(exp1_OBJECTS) $(exp1_DEPENDENCIES) 
+	@rm -f exp1$(EXEEXT)
+	$(LINK) $(exp1_OBJECTS) $(exp1_LDADD) $(LIBS)
+exp2$(EXEEXT): $(exp2_OBJECTS) $(exp2_DEPENDENCIES) 
+	@rm -f exp2$(EXEEXT)
+	$(LINK) $(exp2_OBJECTS) $(exp2_LDADD) $(LIBS)
+exp3$(EXEEXT): $(exp3_OBJECTS) $(exp3_DEPENDENCIES) 
+	@rm -f exp3$(EXEEXT)
+	$(LINK) $(exp3_OBJECTS) $(exp3_LDADD) $(LIBS)
+exp4$(EXEEXT): $(exp4_OBJECTS) $(exp4_DEPENDENCIES) 
+	@rm -f exp4$(EXEEXT)
+	$(LINK) $(exp4_OBJECTS) $(exp4_LDADD) $(LIBS)
+exp5$(EXEEXT): $(exp5_OBJECTS) $(exp5_DEPENDENCIES) 
+	@rm -f exp5$(EXEEXT)
+	$(LINK) $(exp5_OBJECTS) $(exp5_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -218,7 +264,13 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lemon.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/desktop_calc.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/exp1.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/exp2.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/exp3.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/exp4.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/exp5.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lexer.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -233,6 +285,23 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(COMPILE) -c `$(CYGPATH_W) '$<'`
+
+.cc.o:
+@am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ $<
+
+.cc.obj:
+@am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
+
+.l.c:
+	$(am__skiplex) $(SHELL) $(YLWRAP) $< $(LEX_OUTPUT_ROOT).c $@ -- $(LEXCOMPILE)
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
@@ -339,6 +408,7 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
+	-rm -f lexer.c
 clean: clean-am
 
 clean-am: clean-binPROGRAMS clean-generic clean-local mostlyclean-am
@@ -359,7 +429,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-data-local
+install-data-am:
 
 install-dvi: install-dvi-am
 
@@ -402,27 +472,42 @@ uninstall-am: uninstall-binPROGRAMS
 	clean-generic clean-local ctags distclean distclean-compile \
 	distclean-generic distclean-local distclean-tags distdir dvi \
 	dvi-am html html-am info info-am install install-am \
-	install-binPROGRAMS install-data install-data-am \
-	install-data-local install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am install-info \
-	install-info-am install-man install-pdf install-pdf-am \
-	install-ps install-ps-am install-strip installcheck \
-	installcheck-am installdirs maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-compile \
-	mostlyclean-generic pdf pdf-am ps ps-am tags uninstall \
-	uninstall-am uninstall-binPROGRAMS
+	install-binPROGRAMS install-data install-data-am install-dvi \
+	install-dvi-am install-exec install-exec-am install-html \
+	install-html-am install-info install-info-am install-man \
+	install-pdf install-pdf-am install-ps install-ps-am \
+	install-strip installcheck installcheck-am installdirs \
+	maintainer-clean maintainer-clean-generic mostlyclean \
+	mostlyclean-compile mostlyclean-generic pdf pdf-am ps ps-am \
+	tags uninstall uninstall-am uninstall-binPROGRAMS
 
 
 clean-local:
-	-rm -rf *~
+	-rm -rf *~ *.out example[1-5].[ch]
 
 distclean-local:
 	-rm -rf autom4te.cache
 
-install-data-local: ${datadir}/lemon/skeleton.c
+example1.c example1.h: example1.y
+	lemon example1.y
 
-${datadir}/lemon/skeleton.c: skeleton.c
-	${install_sh_DATA} $< $@
+example2.c example2.h: example2.y
+	lemon example2.y
+
+example3.c example3.h: example3.y
+	lemon example3.y
+
+example4.c example4.h: example4.y
+	lemon example4.y
+
+example5.c example5.h: example5.y
+	lemon example5.y
+
+exp1.o: example1.c
+exp2.o: example2.c
+exp3.o: example3.c
+exp4.o: example4.c
+exp5.o: example5.c
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

@@ -6,10 +6,12 @@ AC_INIT([lemon], [0.1], [serge@vak.ru])
 AM_INIT_AUTOMAKE(lemon, 0.1, no-define)
 AC_CONFIG_SRCDIR([src/lemon.c])
 AC_CONFIG_HEADER([config.h])
-AC_CONFIG_FILES([Makefile src/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile examples/Makefile])
 
 # Checks for programs.
 AC_PROG_CC
+AC_PROG_CXX
+AC_PROG_LEX
 
 # Checks for libraries.
 
