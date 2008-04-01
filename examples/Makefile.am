@@ -40,4 +40,4 @@ exp4.o: example4.c
 exp5.o: example5.c
 
 exp6:	example6.d
-	gdc $(CFLAGS) -funittest -fdebug=parser $< -o $@
+	gdc $(AM_CFLAGS) -funittest -fdebug=parser $< -o $@
