@@ -236,7 +236,7 @@ class parser_t {
 	 * "major" is the symbol code, and "yypminor" is a pointer to
 	 * the value.
 	 */
-	private void destructor (YYCODETYPE major, YYMINORTYPE *pminor)
+	private void destructor (int major, YYMINORTYPE *pminor)
 	{
 		switch (major) {
 		/* Here is inserted the actions which take place when a
@@ -263,7 +263,7 @@ class parser_t {
 	 * independent of the look-ahead.  If it is, return the action, otherwise
 	 * return YY_NO_ACTION.
 	 */
-	private int find_shift_action (YYCODETYPE i_lookahead)
+	private int find_shift_action (int i_lookahead)
 	{
 		int i;
 		int stateno = stack[idx].stateno;
@@ -317,7 +317,7 @@ class parser_t {
 	 * independent of the look-ahead.  If it is, return the action, otherwise
 	 * return YY_NO_ACTION.
 	 */
-	private int find_reduce_action (int stateno, YYCODETYPE i_lookahead)
+	private int find_reduce_action (int stateno, int i_lookahead)
 	{
 		int i;
 
@@ -442,6 +442,7 @@ class parser_t {
 		 *  #line <lineno> <thisfile>
 		 *     break;
 		 */
+		default:
 %%
 		};
 		yygoto = rule_info[ruleno].lhs;
