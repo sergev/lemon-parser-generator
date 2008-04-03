@@ -165,7 +165,7 @@ class parser_t {
 	debug (lemon) {
 		private import std.stdio;
 		FILE *trace_file;
-		char[] trace_prompt;
+		string trace_prompt;
 
 		/*
 		 * Turn parser tracing on by giving a stream to which to write
@@ -184,7 +184,7 @@ class parser_t {
 		 * Outputs:
 		 * None.
 		 */
-		void trace (FILE *fd, char[] prompt)
+		void trace (FILE *fd, string prompt)
 		{
 			trace_file = fd;
 			if (trace_file == null)
@@ -195,13 +195,13 @@ class parser_t {
 
 		/* For tracing shifts, the names of all terminals and nonterminals
 		 * are required.  The following table supplies these names */
-		private static const char[] token_name[] = [
+		private static string token_name[] = [
 %%
 		];
 
 		/* For tracing reduce actions, the names of all rules are required.
 		 */
-		private static const char[] rule_name[] = [
+		private static string rule_name[] = [
 %%
 		];
 	}
@@ -610,7 +610,7 @@ class parser_t {
 							major = YYNOCODE;
 						} else if (mx != YYERRORSYMBOL) {
 							YYMINORTYPE u2;
-							u2.yy0 = 0;
+							u2.yy0 = cast(token_t) null;
 							shift (act, YYERRORSYMBOL, &u2);
 						}
 					}
